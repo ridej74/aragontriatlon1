@@ -37,4 +37,7 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
     }
+
+    //Añadidos para hacer redirecciones de rutas segun si user autorizado
+    
 }

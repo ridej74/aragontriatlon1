@@ -11,10 +11,15 @@ class Club extends Model
     protected $fillable = [
         'nombre',
         'direccion',
-        'telefono/s',
+        'telefonos',
         'http',
         'mail',
         'facebook',
         'logo',
-    ];
+    ]; 
+    
+    public function atletas()
+    {
+        return $this->belongsToMany('App\Models\Atleta')->withPivot('fecha_alta','fecha_baja');
+    }
 }

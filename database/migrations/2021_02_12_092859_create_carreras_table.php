@@ -15,7 +15,18 @@ class CreateCarrerasTable extends Migration
     {
         Schema::create('carreras', function (Blueprint $table) {
             $table->id();
+            $table->text('nombre');
+            $table->string('modalidad')->nullable();
+            $table->text('competicion')->nullable();
+            $table->string('localidad')->nullable();
+            $table->string('provincia')->nullable();
+            $table->date('fecha');
+            $table->string('distancia_1')->nullable();
+            $table->string('distancia_2')->nullable();
+            $table->string('distancia_3')->nullable();
+            $table->string('juez_arbitro')->nullable();
             $table->timestamps();
+
         });
     }
 

@@ -17,11 +17,11 @@ class CreateClubsTable extends Migration
             $table->id();
             $table->string('nombre');
             $table->string('direccion')->nullable();
-            $table->string('telefono/s')->nullable();
+            $table->string('telefonos')->nullable();
             $table->string('http')->nullable();
             $table->string('mail')->nullable();
             $table->string('facebook')->nullable();
-            $table->string('logo');
+            $table->string('logo')->nullable();
             $table->timestamps();
         });
     }
@@ -34,5 +34,6 @@ class CreateClubsTable extends Migration
     public function down()
     {
         Schema::dropIfExists('clubs');
+        File::delete(File::glob('storage/app/public/uploads/uploads-club/*.jpg'));
     }
 }

@@ -15,6 +15,10 @@ class CreateAtletasTable extends Migration
     {
         Schema::create('atletas', function (Blueprint $table) {
             $table->id();
+            $table->string('sexo');
+            $table->string('nombre');
+            $table->string('apellido_1');
+            $table->string('apellido_2')->nullable();
             $table->timestamps();
         });
     }
@@ -27,5 +31,6 @@ class CreateAtletasTable extends Migration
     public function down()
     {
         Schema::dropIfExists('atletas');
+        
     }
 }

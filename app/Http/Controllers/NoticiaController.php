@@ -1,9 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
+use App\Models\Club;
+use App\Models\User;
 use App\Models\Noticia;
+use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -73,9 +76,11 @@ class NoticiaController extends Controller
      * @param  \App\Models\Noticia  $noticia
      * @return \Illuminate\Http\Response
      */
-    public function show(Noticia $noticia)
+    public function show($id)
     {
-        //
+        $noticias=Noticia::findOrFail($id);
+        $noticia_autor=Noticia::with('user')->paginate(10);
+        return view('noticia.show',compact('noticias','noticia_autor'));
     }
 
     /**
@@ -84,9 +89,10 @@ class NoticiaController extends Controller
      * @param  \App\Models\Noticia  $noticia
      * @return \Illuminate\Http\Response
      */
-    public function edit(Noticia $noticia)
+    public function edit($id)
     {
-        //
+        $noticia=Noticia::findOrFail($id);
+        return view('noticia.edit', compact('noticia'));
     }
 
     /**
@@ -96,9 +102,33 @@ class NoticiaController extends Controller
      * @param  \App\Models\Noticia  $noticia
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Noticia $noticia)
+    public function update(Request $request, $id)
     {
-        //
+        $fecha = Carbon::now();
+
+        if($request->hasFile('imagen')){
+            $noticia=Noticia::findOrFail($id);
+
+            Storage::delete('public/uploads/uploads-noticia',$id.'.jpg');
+            
+            $noticia['imagen']=$request->file('imagen')->storeAs('public/uploads/uploads-noticia',$id.'.jpg');
+        }
+        else{
+            $noticia=Noticia::findOrFail($id);
+            $noticia['imagen']=$request->file('imagen');
+        }
+
+        $noticia->titulo = $request->titulo;
+        $noticia->descripcion = $request->descripcion;
+        $noticia->imagen = $request->imagen;
+        $noticia->user->name = $request->user_id;
+        $noticia->mail = $request->mail;
+        $noticia->created_at = $fecha;
+        $noticia->updated_at = $fecha;
+        $noticia->save();
+
+         return redirect()->route('Noticias.index')->with('mensaje','El registro ha sido modificado!');
+
     }
 
     /**
@@ -107,8 +137,58 @@ class NoticiaController extends Controller
      * @param  \App\Models\Noticia  $noticia
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Noticia $noticia)
+    public function destroy($id)
     {
-        //
+        $noticia = Noticia::destroy($id);
+        return redirect()->route('Noticias.index')->with('mensaje','El registro ha sido eliminado!');
     }
+
+    public function buscar(Request $request){
+        $data=$request->validate([
+            'titulo' => 'min:0',
+            'user_id' => 'min:0'
+        ]);
+
+        $titulo='%'.$data['titulo'].'%';
+
+        $noticias=Noticia::latest()
+        ->where('titulo','LIKE','%'.$titulo.'%')->paginate(10);
+            
+        return view('buscar.noticiasindex',compact('noticias'));
+    }
+
+    public function invitadobuscar(Request $request){
+        $data=$request->validate([
+            'titulo' => 'min:0',
+            'autor' => 'min:0'
+        ]);
+
+        $titulo='%'.$data['titulo'].'%';
+        $autor='%'.$data['autor'].'%';
+        
+        $buscar_autor= DB::table('users')
+        ->where('name','LIKE','%'.$autor.'%')
+        ->get('id');
+        $autor = Arr::flatten($buscar_autor[0]); 
+
+        $noticias=Noticia::latest()
+        ->where('titulo','LIKE','%'.$titulo.'%')
+        ->where('user_id','LIKE','%'.$autor[0].'%')
+        ->paginate(10);
+       
+        return view('buscar.noticiasindex',compact('noticias'));
+    }
+
+    public function invitadoshow($id)
+    {
+        $noticias=Noticia::findOrFail($id);
+        $noticia_autor=Noticia::with('user')->paginate(10);
+        return view('invitado.noticia.show',compact('noticias','noticia_autor'));
+    }
+
+    public function noticias() {
+        $noticias= Noticia::get();
+        return view('invitado.noticia.index', compact('noticias'));
+    }
+
 }
